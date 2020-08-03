@@ -1,0 +1,49 @@
+#editor_container{
+    /* Container to hold the phaser "ViewPort" */
+    display:inline-block;
+
+}
+
+#button_container{
+    display: inline-block;
+    vertical-align: top;
+    /* padding-top:; */
+
+}
+
+#MugEditor{
+    display:inline-block;
+}
+
+#ava_1{
+    
+}
+#ava_2{
+
+}
+#ava_3{
+
+}
+#ava_4{
+
+}
+#ava_5{
+
+}
+
+.avatar_buttons{
+
+}
+
+
+
+.e_button{
+    margin-top: 20px;
+    width: 75px;
+    height: 30px;
+}
+
+.con_button{
+    /* basic button setup for UI */
+
+}
