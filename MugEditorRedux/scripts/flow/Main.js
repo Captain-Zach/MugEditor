@@ -117,16 +117,14 @@ class Main extends Phaser.Scene {
 
     create(){
         // define and create inputs
-        this.rBody = "thin";
-        if(Math.random() >= 0.5) { this.rBody = "thin"; }
-        else { this.rBody = "thicc"; }
+        
         // this.puppet = new Dopleganger(this, this.rBody);
         this.puppet_list = [];
         this.addButton = document.getElementById("add_button");
         this.addButton.onclick = () => {
             //Create Dopl
             console.log("add button");
-            this.puppet_list.push(new Dopleganger(this, this.puppet_list.length + 1))
+            this.puppet_list.push(new Dopleganger(this, this.puppet_list.length + 1, randomBodyType()))
             this.puppet_list.forEach(puppet => {
                 // repositions all elements based on length of pList
                 puppet.repos(this.puppet_list.length);
@@ -153,10 +151,13 @@ class Main extends Phaser.Scene {
     }
 }
 
+
 class Dopleganger{
     constructor(scene,pos=0, bodyType="thin"){
+        bodyType = randomBodyType();
+
         console.log(Math.round(Math.random() * 3));
-        this.scale = 0.25;
+        this.scale = 0.2;
         this.pos = pos;
         
         // Offsets [x, y]
@@ -185,7 +186,6 @@ class Dopleganger{
         this.thinBotOffset = [0 + this.totalOffset[x],(302 * this.scale) + this.totalOffset[y]];
         this.thinTopOffset = [0 + this.totalOffset[x],(90 * this.scale) + this.totalOffset[y]];
 
-        // bodyType = "thicc";
         if(bodyType == "thicc"){
             this.body = scene.add.image(this.totalOffset[x],this.totalOffset[y], 
                 scene.bodyListThicc[Math.floor(Math.random() * scene.bodyListThicc.length)]).setScale(this.scale);
@@ -235,12 +235,14 @@ class Dopleganger{
 
              } break;
             case 2: {console.log("case: " + total_pups);
-                start = start - 325; // half of the length
+                start = start - 200; // half of the length
                 this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
             case 3: {console.log("case: " + total_pups); 
-                start = start - (this.scale * (1400));
+                start = start - (total_pups*(750 * this.scale)) / 1.5;
                 this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
-            case 4: {console.log("case: " + total_pups); } break;
+                case 4: {console.log("case: " + total_pups); 
+                start = start - (total_pups*(750 * this.scale) / 1.6);
+                this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
             case 5: {console.log("case: " + total_pups); } break;
         }
 
@@ -256,7 +258,12 @@ let add_event = new CustomEvent("add_dopl", {
     }
 })
 
+// Helper Functions
 function clickTest() {
     console.log("I clicked a button");
     dispatchEvent(add_event);
+}
+
+function randomBodyType(){
+    return (Math.random() >= 0.5) ? "thin" : "thicc";
 }
