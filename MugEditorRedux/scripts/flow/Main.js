@@ -15,6 +15,12 @@ class Main extends Phaser.Scene {
         this.loadImages(this.bodyListThin);
         this.loadImages(this.bottomListThin);
         this.loadImages(this.sweaterListThin);
+        // load GUI elements
+        this.load.image("close", "./assets/GUI/close.png");
+        this.load.image("skin-tone_button", "./assets/GUI/button_skin-tone.png");
+        this.load.image("bottom_button", "./assets/GUI/button_bottom.png");
+        this.load.image("top_button", "./assets/GUI/button_top.png");
+        this.load.image("hair_button", "./assets/GUI/button_hair.png");
     }
     
     createDefinitions(){
@@ -115,20 +121,48 @@ class Main extends Phaser.Scene {
         }
     }
 
+    refreshAvaList(){
+        console.log(this.ava_list);
+        this.ava_list[this.puppet_list.length].style.display = "none"
+        this.ava_list.forEach((avatar, index) => {
+            avatar = document.getElementById("ava_"+index);
+        });
+        this.shuffle(this.puppet_list.length);
+        this.addButton.disabled = false;
+    }
+
     create(){
         // define and create inputs
         
         // this.puppet = new Dopleganger(this, this.rBody);
         this.puppet_list = [];
+        // reference the hidden avatar buttons
+        this.ava_list = [];
+
+        for(let i = 1; i < 5; ++i){
+            this.ava_list.push(document.getElementById("ava_"+i));
+        }
+        //
+        this.ava_list.forEach((avatar, index) => {
+            avatar.onclick = () => {
+                console.log("You'ved clicked avatar", avatar.id);
+                this.editor = new EditPort(this, this.puppet_list[index], index);
+                // console.log(index)
+            }
+        });
         this.addButton = document.getElementById("add_button");
+
         this.addButton.onclick = () => {
             //Create Dopl
             console.log("add button");
             this.puppet_list.push(new Dopleganger(this, this.puppet_list.length + 1, randomBodyType()))
+            this.ava_list[this.puppet_list.length - 1].style.display = "inline-block";
             this.puppet_list.forEach(puppet => {
                 // repositions all elements based on length of pList
                 puppet.repos(this.puppet_list.length);
             });
+            const cutoff = 4;
+            if(this.puppet_list.length >= cutoff) this.addButton.disabled = true;
         }
         this.BGButton = document.getElementById("BG_button");
         this.BGButton.onclick = () => {
@@ -144,6 +178,14 @@ class Main extends Phaser.Scene {
         this.cartButton.onclick = () => {
             console.log("Firing off add to cart event");
         }
+    }
+
+    shuffle(){
+        // resets the pos values of all the remaining dopls after a delete or move
+        this.puppet_list.forEach((puppet, index) => {
+            puppet.pos = index + 1;
+            puppet.repos(this.puppet_list.length);
+        });
     }
 
     update(){
@@ -163,15 +205,7 @@ class Dopleganger{
         // Offsets [x, y]
         let x = 0;
         let y = 1;
-        // this.totalOffset = [400,300];
-/*
-        
-        0+ 0
-        1- -90 + 90 = 0
-        2+ 90  = 90
-        3- -270 + 90 = - 180
-        4+ 360  360
- */
+
         let spacing = 90;
         pos = (pos & 0 == 0) ? pos *= 1  : pos *= -1;
         let adj = 0;
@@ -186,77 +220,177 @@ class Dopleganger{
         this.thinBotOffset = [0 + this.totalOffset[x],(302 * this.scale) + this.totalOffset[y]];
         this.thinTopOffset = [0 + this.totalOffset[x],(90 * this.scale) + this.totalOffset[y]];
 
+        let construct = {
+            body: undefined,
+            bottom: undefined,
+            top: undefined,
+            hair: undefined,
+            thicc: undefined
+        }
+
+        bodyType == "thicc" ? construct.thicc = true : construct.thicc = false;
+
         if(bodyType == "thicc"){
+            construct.body = RiR(scene.bodyListThicc.length);
+            construct.bottom = RiR(scene.bottomListThicc.length);
+            construct.top = RiR(scene.sweaterListThicc.length);
+            console.log(construct);
             this.body = scene.add.image(this.totalOffset[x],this.totalOffset[y], 
-                scene.bodyListThicc[Math.floor(Math.random() * scene.bodyListThicc.length)]).setScale(this.scale);
+                scene.bodyListThicc[construct.body]).setScale(this.scale);
             this.bottom = scene.add.image(this.thiccBotOffset[x],this.thiccBotOffset[y], 
-                scene.bottomListThicc[Math.floor(Math.random() * scene.bottomListThicc.length)]).setScale(this.scale);
+                scene.bottomListThicc[construct.bottom]).setScale(this.scale);
             this.top = scene.add.image(this.thiccTopOffset[x],this.thiccTopOffset[y], 
-                scene.sweaterListThicc[Math.floor(Math.random() * scene.sweaterListThicc.length)]).setScale(this.scale);
+                scene.sweaterListThicc[construct.top]).setScale(this.scale);
         }else{
             
-            this.test = Math.floor(Math.random() * scene.bodyListThin.length);
-            console.log(this.test);
-
+            // this.test = Math.floor(Math.random() * scene.bodyListThin.length);
+            // console.log(this.test);
+            construct.body = RiR(scene.bodyListThin.length);
+            construct.bottom = RiR(scene.bottomListThin.length);
+            construct.top = RiR(scene.sweaterListThin.length);
             this.body = scene.add.image(this.totalOffset[x],this.totalOffset[y], 
-                scene.bodyListThin[this.test]).setScale(this.scale);
+                scene.bodyListThin[construct.body]).setScale(this.scale);
             this.bottom = scene.add.image(this.thinBotOffset[x],this.thinBotOffset[y], 
-                scene.bottomListThin[Math.floor(Math.random() * scene.bottomListThin.length)]).setScale(this.scale);
+                scene.bottomListThin[construct.bottom]).setScale(this.scale);
             this.top = scene.add.image(this.thinTopOffset[x],this.thinTopOffset[y], 
-                scene.sweaterListThin[Math.floor(Math.random() * scene.sweaterListThin.length)]).setScale(this.scale);
+                scene.sweaterListThin[construct.top]).setScale(this.scale);
         }
+        construct.hair = RiR(scene.hairList.length);
+        this.construct = construct;
         this.hair = scene.add.image(this.hairOffset[x],this.hairOffset[y],
-            scene.hairList[Math.floor(Math.random() * scene.hairList.length)]).setScale(this.scale);
-        console.log(this.body.width);
+            scene.hairList[construct.hair]).setScale(this.scale);
+        // console.log(this.body.width);
         scene.add.existing(this);
     }
     
     updatePos() {
         // Update position based on position variable.
-
     }
 
     refresh() {
-        // 0 = x, 1 = y
-        this.body.x = this.totalOffset[0]
-        this.bottom.x = this.totalOffset[0]
-        this.top.x = this.totalOffset[0]
-        this.hair.x = this.totalOffset[0]
-        
+        console.log("dopl refresh");
+        let x = this.totalOffset[0];
+        this.body.x = this.bottom.x = this.top.x = this.hair.x = x;
     }
 
     repos(total_pups) {
         console.log("repositioning on spawn " + total_pups, "at pos", this.pos);
         let start = 300;
+
+        let caseRes = "case: " + total_pups;
         
         switch(total_pups){
             case 1: {
-                this.totalOffset[0] = start * this.pos;
-
-             } break;
-            case 2: {console.log("case: " + total_pups);
-                start = start - 200; // half of the length
-                this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
-            case 3: {console.log("case: " + total_pups); 
-                start = start - (total_pups*(750 * this.scale)) / 1.5;
-                this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
-                case 4: {console.log("case: " + total_pups); 
-                start = start - (total_pups*(750 * this.scale) / 1.6);
-                this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } break;
-            case 5: {console.log("case: " + total_pups); } break;
+                    this.totalOffset[0] = start * this.pos;}
+                    break;
+            case 2: {
+                    console.log(caseRes);
+                    start -= 225; // half of the length
+                    this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } 
+                    break;
+            case 3: {
+                    console.log(caseRes);
+                    start -= (total_pups*(750 * this.scale)) / 1.5;
+                    this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } 
+                    break;
+            case 4: {
+                    console.log(caseRes);
+                    start -= (total_pups*(750 * this.scale) / 1.6);
+                    this.totalOffset[0] = start + (this.scale * (this.pos * 750)) } 
+                    break;
+            default: {console.log("repo::total_pups value out of bounds"); } break;
         }
-
-        // if(total_pups > 1){
-        //     this.totalOffset[0] = this.scale*( start - (this.pos * ((750 * this.pos)*-1) + (750 * (this.pos - 1))));
-        // }
         this.refresh();
     }
-}
-let add_event = new CustomEvent("add_dopl", {
-    detail: {
-        test: true
+
+    dopl_copy() {
+        let copy = {
+            body: this.body,
+            bottom: this.bottom,
+            top: this.top,
+            hair: this.hair
+        }
+        return copy;
     }
-})
+
+    destroy(){
+        this.body.destroy();
+        this.bottom.destroy();
+        this.top.destroy();
+        this.hair.destroy();
+    }
+
+    dopl_test() {
+        this.totalOffset[0] = 100;
+    }
+}
+
+class DoplCopy{
+    constructor(scene, construct, index){
+        this.construct = construct;
+        this.scale = 0.3;
+        this.posX = 450;
+        this.posY = 160;
+
+        this.scene = scene;
+
+        this.refNum = index;
+        // delete after reimport of assets
+        let offsetY = 100;
+        if(construct.thicc){
+            this.body = scene.add.image(this.posX, this.posY, scene.bodyListThicc[construct.body]).setScale(this.scale);
+            this.bottom = scene.add.image(this.posX, this.posY + offsetY, scene.bottomListThicc[construct.bottom]).setScale(this.scale);
+            this.top = scene.add.image(this.posX, this.posY,scene.sweaterListThicc[construct.top]).setScale(this.scale);
+        }else{
+            this.body = scene.add.image(this.posX, this.posY, scene.bodyListThin[construct.body]).setScale(this.scale);
+            this.bottom = scene.add.image(this.posX, this.posY + offsetY, scene.bottomListThin[construct.bottom]).setScale(this.scale);
+            this.top = scene.add.image(this.posX, this.posY,scene.sweaterListThin[construct.top]).setScale(this.scale);
+        }
+        this.hair = scene.add.image(this.posX, this.posY, scene.hairList[construct.hair]).setScale(this.scale);
+        scene.add.existing(scene);
+    }
+
+    destroy(scene){
+        // let allProps = this.
+        // rewrite this to iterate over all props, destroying phaser objects and undefining others
+        this.body.destroy();
+        this.bottom.destroy();
+        this.top.destroy();
+        this.hair.destroy();
+        this.puppet = scene.puppet_list[this.refNum];
+        // this.puppet = this.refNum;
+        // console.log(this.puppet);
+        this.puppet.destroy();
+        scene.puppet_list.splice(this.refNum,1);
+        // scene.ava_list.splice(this.refNum, 1);
+        scene.refreshAvaList();
+    }
+
+}
+
+class EditPort{
+    constructor(scene, dopl, index){
+        // Origin is center of rectangle (x, y, width, height, color);
+        this.BG = scene.add.rectangle(300, 200, 600, 400, 0x6495ED);
+        this.close = scene.add.image(550, 50, "close").setScale(0.12);
+        this.close.setInteractive();
+        this.close.on("pointerdown", () => {
+            this.destroy(scene);
+        })
+        console.log(dopl);
+        this.dopl_copy = new DoplCopy(scene, dopl.construct, index);
+        scene.add.existing(this);
+    }
+
+    destroy(scene){
+        console.log("Go on now, git");
+        this.BG.destroy();
+        this.close.destroy();
+        this.dopl_copy.destroy(scene);
+        // this = undefined;
+
+    }
+}
 
 // Helper Functions
 function clickTest() {
@@ -266,4 +400,8 @@ function clickTest() {
 
 function randomBodyType(){
     return (Math.random() >= 0.5) ? "thin" : "thicc";
+}
+
+function RiR(high, low=0){
+    return(Math.floor(Math.random() * (high-low) + low));
 }

@@ -20,6 +20,14 @@ wss.on('connection', ws => {
     }))
     ws.on("message", data => {
         data = JSON.parse(data.data);
-        // if()
     })
 })
+
+/*
+ We need to compile an image from the data we've gathered on the frontend
+ I recommend using JIMP to composite the images. You'll find an identical
+ assets folder here in the backend. The input from the frontend will be 
+ a JSON object sent through the ws connection. Once that's compiled, send 
+ the image back in base_64.
+ Image dimensions to follow.  Resolution = 300 DPI
+*/
